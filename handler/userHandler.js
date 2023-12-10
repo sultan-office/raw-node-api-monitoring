@@ -129,5 +129,117 @@ handler._users.GET = (requestProperties, callback) => {
   }
 };
 
+// Handler for PUT method
+handler._users.PUT = (requestProperties, callback) => {
+  const bodyProperties = requestProperties.body;
+
+  // First Name Variable
+  const firstName =
+    typeof bodyProperties.firstName === "string" &&
+    bodyProperties.firstName.trim().length > 0
+      ? bodyProperties.firstName
+      : false;
+
+  // Last Name Variable
+  const lastName =
+    typeof bodyProperties.lastName === "string" &&
+    bodyProperties.lastName.trim().length > 0
+      ? bodyProperties.lastName
+      : false;
+
+  // Phone number Variable
+  const phone =
+    typeof bodyProperties.phone === "string" &&
+    bodyProperties.phone.trim().length === 11
+      ? bodyProperties.phone
+      : false;
+
+  // Password Variable
+  const password =
+    typeof bodyProperties.password === "string" &&
+    bodyProperties.password.trim().length > 0
+      ? bodyProperties.phone
+      : false;
+
+  // Tos Agreement Variable
+  const tosAgreement =
+    typeof bodyProperties.tosAgreement === "boolean"
+      ? bodyProperties.tosAgreement
+      : false;
+
+  if (phone) {
+    if (firstName || lastName || password) {
+      data.read("users", phone, (err1, userData) => {
+        const user = { ...parseJSON(userData) };
+
+        if (!err1 && user) {
+          if (firstName) {
+            user.firstName = firstName;
+          }
+
+          if (lastName) {
+            user.lastName = lastName;
+          }
+
+          if (password) {
+            user.password = password;
+          }
+
+          data.update("users", phone, user, (err2) => {
+            if (!err2) {
+              callback(200, {
+                error: "your request updated successfully ",
+              });
+            } else {
+              callback(501, {
+                error: "your request has not update successfully ",
+              });
+            }
+          });
+        } else {
+          callback(500, {
+            error: "you have problem in you request",
+          });
+        }
+      });
+    } else {
+      callback(404, {
+        error: "you have problem in your request",
+      });
+    }
+  } else {
+    callback(404, {
+      error: "this phone number is invalid",
+    });
+  }
+};
+
+// Handler for DELETE method
+handler._users.DELETE = (requestProperties, callback) => {
+  const phone =
+    typeof requestProperties.queryStringObject.phone === "string" &&
+    requestProperties.queryStringObject.phone.trim().length === 11
+      ? requestProperties.queryStringObject.phone
+      : false;
+
+  if (phone) {
+    data.delete("users", phone, (err1) => {
+      if (!err1) {
+        callback(202, {
+          message: "user deleted successfully",
+        });
+      } else {
+        callback(505, {
+          error: "there was a server side problem",
+        });
+      }
+    });
+  } else {
+    callback(404, {
+      error: "your requested user not found",
+    });
+  }
+};
+
 // Export Handler
 module.exports = handler;
