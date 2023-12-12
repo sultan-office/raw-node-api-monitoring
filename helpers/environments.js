@@ -15,6 +15,7 @@ environments.staging = {
     port : 3000,
     envName : "staging",
     secretKey: 'hsjdhsdhsjdhjshdjshd',
+    maxChecks: 5,
 };
 
 // Production Environments
@@ -22,6 +23,7 @@ environments.production = {
     port : 5000,
     envName : "production",
     secretKey: 'tryghfghgfdhhvff67586^^',
+    maxChecks: 5,
 }
 
 // Deter mind which

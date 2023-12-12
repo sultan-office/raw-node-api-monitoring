@@ -7,12 +7,16 @@
 */
 
 // dependency 
-const {sampleHandler} = require('./handler/sampleHandler')
+const {sampleHandler} = require('./handler/sampleHandler');
+const { tokenHandler } = require('./handler/tokenHandler');
 const {userHandler} = require('./handler/userHandler')
+const {checkHandler} = require('./handler/checkHandler')
 // Module Scaffolding
 const routes = {
     sample : sampleHandler,
-    user : userHandler
+    user : userHandler,
+    token : tokenHandler,
+    check : checkHandler,
 };
 
 module.exports = routes;

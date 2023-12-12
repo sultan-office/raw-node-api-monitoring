@@ -9,6 +9,7 @@
 // Dependency
 const data = require("../lib/data");
 const { hash, parseJSON } = require("../helpers/utilities");
+const tokenHandler = require("./tokenHandler");
 
 // Module Scaffolding
 const handler = {};
@@ -111,14 +112,28 @@ handler._users.GET = (requestProperties, callback) => {
       : false;
 
   if (phone) {
-    data.read("users", phone, (err1, userData) => {
-      const user = { ...parseJSON(userData) };
-      if (!err1 && user) {
-        delete user.password;
-        callback(200, user);
+    const token =
+      typeof requestProperties.headerObject.token === "string"
+        ? requestProperties.headerObject.token
+        : false;
+
+    // Check token verify
+    tokenHandler._token.verify(token, phone, (tokenId) => {
+      if (tokenId) {
+        data.read("users", phone, (err1, userData) => {
+          const user = { ...parseJSON(userData) };
+          if (!err1 && user) {
+            delete user.password;
+            callback(200, user);
+          } else {
+            callback(404, {
+              error: "requested users not found in data base",
+            });
+          }
+        });
       } else {
-        callback(404, {
-          error: "requested users not found in data base",
+        callback(403, {
+          error: "Authentication failure",
         });
       }
     });
@@ -172,35 +187,49 @@ handler._users.PUT = (requestProperties, callback) => {
       data.read("users", phone, (err1, userData) => {
         const user = { ...parseJSON(userData) };
 
-        if (!err1 && user) {
-          if (firstName) {
-            user.firstName = firstName;
-          }
+        const token =
+          typeof requestProperties.headerObject.token === "string"
+            ? requestProperties.headerObject.token
+            : false;
 
-          if (lastName) {
-            user.lastName = lastName;
-          }
+        tokenHandler._token.verify(token, phone, (tokenId) => {
+          // Token Verify
+          if (tokenId) {
+            if (!err1 && user) {
+              if (firstName) {
+                user.firstName = firstName;
+              }
 
-          if (password) {
-            user.password = password;
-          }
+              if (lastName) {
+                user.lastName = lastName;
+              }
 
-          data.update("users", phone, user, (err2) => {
-            if (!err2) {
-              callback(200, {
-                error: "your request updated successfully ",
+              if (password) {
+                user.password = password;
+              }
+
+              data.update("users", phone, user, (err2) => {
+                if (!err2) {
+                  callback(200, {
+                    message: "your request updated successfully ",
+                  });
+                } else {
+                  callback(501, {
+                    error: "your request has not update successfully ",
+                  });
+                }
               });
             } else {
-              callback(501, {
-                error: "your request has not update successfully ",
+              callback(500, {
+                error: "you have problem in you request",
               });
             }
-          });
-        } else {
-          callback(500, {
-            error: "you have problem in you request",
-          });
-        }
+          } else {
+            callback(500, {
+              error: "Authentication Problem",
+            });
+          }
+        });
       });
     } else {
       callback(404, {
